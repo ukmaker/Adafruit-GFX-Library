@@ -71,12 +71,12 @@ void DefaultFontRenderer_NG::drawChar(Adafruit_GFX_NG &gfx, int16_t x, int16_t y
         bits = pgm_read_byte(&bitmap[bo++]);
         }
         if (bits & 0x80) {
-        if (size_x == 1 && size_y == 1) {
-            gfx.writePixel(x + xo + xx, y + yo + yy, color);
-        } else {
-            gfx.writeFillRect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
-                        size_x, size_y, color);
-        }
+          if (size_x == 1 && size_y == 1) {
+              gfx.writePixel(x + xo + xx, y + yo + yy, color);
+          } else {
+              gfx.writeFillRect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
+                          size_x, size_y, color);
+          }
         }
         bits <<= 1;
     }

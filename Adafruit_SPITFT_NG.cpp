@@ -1349,6 +1349,9 @@ void Adafruit_SPITFT_NG::writeColor(uint16_t color, uint32_t len) {
     while (len--)
       spi_write_blocking(pi_spi, (uint8_t *)&color, 2);
 #else // !ESP8266 && !ARDUINO_ARCH_RP2040
+#if defined(SPI_MULTI_TRANSFER)
+      hwspi._spi->transfer16(color, len);
+#else
     while (len--) {
 #if defined(__AVR__)
       AVR_WRITESPI(hi);
@@ -1361,6 +1364,7 @@ void Adafruit_SPITFT_NG::writeColor(uint16_t color, uint32_t len) {
       hwspi._spi->transfer(lo);
 #endif
     }
+#endif
 #endif // end !ESP8266
   } else if (connection == TFT_SOFT_SPI) {
 #if defined(ESP8266)
