@@ -117,7 +117,7 @@ size_t DefaultFontRenderer_NG::write(Adafruit_GFX_NG &gfx, uint8_t c) {
         if ((w > 0) && (h > 0)) { // Is there an associated bitmap?
             int16_t xo = (int8_t)pgm_read_byte(&glyph->xOffset); // sic
             uint16_t cw = textsize_x * (xo + w);
-            if (wrap && ((cursor_x + cw) > xw)) {
+            if (wrap && ((cursor_x + cw) > (x0 + xw))) {
             cursor_x = x0;
             cursor_y += (int16_t)textsize_y *
                         (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
