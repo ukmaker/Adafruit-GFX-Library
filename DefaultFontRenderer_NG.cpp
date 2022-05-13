@@ -142,11 +142,13 @@ size_t DefaultFontRenderer_NG::write(Adafruit_GFX_NG &gfx, uint8_t c) {
     @param  y  y coordinate of the window's top left point
     @param  w  The width of the window
     @param  h  The height of the window
-    @note Also sets the text cursor position to the top left
+    @note Also sets the text cursor position to the top left 
+          character position (y + the font height)
 /**************************************************************************/
 void DefaultFontRenderer_NG::setTextWindow(int16_t x, int16_t y, int16_t w, int16_t h) {
   textX = cursor_x = x;
-  textY = cursor_y = y;
+  textY = y;
+  cursor_y = y + textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
   textW = w;
   textH = h;
   textWindowed = true;
