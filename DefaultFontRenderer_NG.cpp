@@ -148,7 +148,7 @@ size_t DefaultFontRenderer_NG::write(Adafruit_GFX_NG &gfx, uint8_t c) {
 void DefaultFontRenderer_NG::setTextWindow(int16_t x, int16_t y, int16_t w, int16_t h) {
   textX = cursor_x = x;
   textY = y;
-  cursor_y = y + textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
+  cursor_y = y + textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance) - 1;
   textW = w;
   textH = h;
   textWindowed = true;
