@@ -122,8 +122,8 @@ size_t DefaultFontRenderer_NG::write(Adafruit_GFX_NG &gfx, uint8_t c) {
             cursor_y += (int16_t)textsize_y *
                         (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
             }
-            if (!textWindowed || (textWindowed && ((cursor_x + cw) < (x0 + xw)) &&
-                                (cursor_y < (y0 + yh)))) {
+            if (!textWindowed || (textWindowed && ((cursor_x + cw) <= (x0 + xw)) &&
+                                (cursor_y <= (y0 + yh)))) {
             drawChar(gfx, cursor_x, cursor_y, c, textcolor, textbgcolor, textsize_x,
                         textsize_y);
             }
@@ -243,7 +243,7 @@ void DefaultFontRenderer_NG::charBounds(unsigned char c, int16_t *x, int16_t *y,
           *y += textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
         }
         int16_t tsx = (int16_t)textsize_x, tsy = (int16_t)textsize_y,
-                x1 = *x + xo * tsx, y1 = *y + yo * tsy, x2 = x1 + gw * tsx - 1,
+                x1 = *x + xo * tsx, y1 = *y + yo * tsy, x2 = x1 + xa * tsx - 1,
                 y2 = y1 + gh * tsy - 1;
         if (x1 < *minx)
           *minx = x1;
