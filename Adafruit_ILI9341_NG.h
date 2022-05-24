@@ -42,6 +42,9 @@
 #include <Adafruit_SPITFT_NG.h>
 #include <Adafruit_SPITFT_Macros.h>
 #include <SPI.h>
+#include "STMDMA.h"
+
+class STMDMA;
 
 #define ILI9341_TFTWIDTH 240  ///< ILI9341 max TFT width
 #define ILI9341_TFTHEIGHT 320 ///< ILI9341 max TFT height
@@ -154,6 +157,14 @@ public:
   void setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
   uint8_t readcommand8(uint8_t reg, uint8_t index = 0);
+  void setSTMDMA(STMDMA *stmdma);
+
+  // override
+  virtual void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+                        uint16_t color);
+
+  protected:
+  STMDMA *_stmdma;
 };
 
 #endif // _Adafruit_ILI9341_NGH_

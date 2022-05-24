@@ -55,10 +55,11 @@
 #endif
 #include <limits.h>
 
+#include "STMDMA.h"
 #if defined(ARDUINO_ARCH_ARC32) || defined(ARDUINO_MAXIM)
 #define SPI_DEFAULT_FREQ 16000000
 // Teensy 3.0, 3.1/3.2, 3.5, 3.6
-#elif defined(__MK20DX128__) || defined(__MK20DX256__) ||                      \
+#elif defined(__MK20DX128__) || defined(__MK20DX256__) || \
     defined(__MK64FX512__) || defined(__MK66FX1M0__)
 #define SPI_DEFAULT_FREQ 40000000
 #elif defined(__AVR__) || defined(TEENSYDUINO)
@@ -70,16 +71,16 @@
 #elif defined(ARDUINO_ARCH_STM32F1)
 #define SPI_DEFAULT_FREQ 36000000
 #else
-#define SPI_DEFAULT_FREQ 24000000 ///< Default SPI data clock frequency
+#define SPI_DEFAULT_FREQ 24000000  ///< Default SPI data clock frequency
 #endif
 
-#define MADCTL_MY 0x80  ///< Bottom to top
-#define MADCTL_MX 0x40  ///< Right to left
-#define MADCTL_MV 0x20  ///< Reverse Mode
-#define MADCTL_ML 0x10  ///< LCD refresh Bottom to top
-#define MADCTL_RGB 0x00 ///< Red-Green-Blue pixel order
-#define MADCTL_BGR 0x08 ///< Blue-Green-Red pixel order
-#define MADCTL_MH 0x04  ///< LCD refresh right to left
+#define MADCTL_MY 0x80   ///< Bottom to top
+#define MADCTL_MX 0x40   ///< Right to left
+#define MADCTL_MV 0x20   ///< Reverse Mode
+#define MADCTL_ML 0x10   ///< LCD refresh Bottom to top
+#define MADCTL_RGB 0x00  ///< Red-Green-Blue pixel order
+#define MADCTL_BGR 0x08  ///< Blue-Green-Red pixel order
+#define MADCTL_MH 0x04   ///< LCD refresh right to left
 
 /**************************************************************************/
 /*!
@@ -93,9 +94,9 @@
 */
 /**************************************************************************/
 Adafruit_ILI9341_NG::Adafruit_ILI9341_NG(int8_t cs, int8_t dc, int8_t mosi,
-                                   int8_t sclk, int8_t rst, int8_t miso)
-    : Adafruit_SPITFT_NG(ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT, cs, dc, mosi, sclk,
-                      rst, miso) {}
+                                         int8_t sclk, int8_t rst, int8_t miso)
+    : Adafruit_SPITFT_NG(ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT, cs, dc, mosi,
+                         sclk, rst, miso) {}
 
 /**************************************************************************/
 /*!
@@ -121,11 +122,11 @@ Adafruit_ILI9341_NG::Adafruit_ILI9341_NG(int8_t cs, int8_t dc, int8_t rst)
     @param  rst       Reset pin # (optional, pass -1 if unused).
 */
 /**************************************************************************/
-Adafruit_ILI9341_NG::Adafruit_ILI9341_NG(SPIClass *spiClass, int8_t dc, int8_t cs,
-                                   int8_t rst)
+Adafruit_ILI9341_NG::Adafruit_ILI9341_NG(SPIClass *spiClass, int8_t dc,
+                                         int8_t cs, int8_t rst)
     : Adafruit_SPITFT_NG(ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT, spiClass, cs, dc,
-                      rst) {}
-#endif // end !ESP8266
+                         rst) {}
+#endif  // end !ESP8266
 
 /**************************************************************************/
 /*!
@@ -142,10 +143,11 @@ Adafruit_ILI9341_NG::Adafruit_ILI9341_NG(SPIClass *spiClass, int8_t dc, int8_t c
     @param  rd        Read strobe pin # (optional, pass -1 if unused).
 */
 /**************************************************************************/
-Adafruit_ILI9341_NG::Adafruit_ILI9341_NG(tftBusWidth busWidth, int8_t d0, int8_t wr,
-                                   int8_t dc, int8_t cs, int8_t rst, int8_t rd)
-    : Adafruit_SPITFT_NG(ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT, busWidth, d0, wr, dc,
-                      cs, rst, rd) {}
+Adafruit_ILI9341_NG::Adafruit_ILI9341_NG(tftBusWidth busWidth, int8_t d0,
+                                         int8_t wr, int8_t dc, int8_t cs,
+                                         int8_t rst, int8_t rd)
+    : Adafruit_SPITFT_NG(ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT, busWidth, d0, wr,
+                         dc, cs, rst, rd) {}
 
 // clang-format off
 static const uint8_t PROGMEM initcmd[] = {
@@ -185,13 +187,11 @@ static const uint8_t PROGMEM initcmd[] = {
 */
 /**************************************************************************/
 void Adafruit_ILI9341_NG::begin(uint32_t freq) {
-
-  if (!freq)
-    freq = SPI_DEFAULT_FREQ;
+  if (!freq) freq = SPI_DEFAULT_FREQ;
   initSPI(freq);
 
-  if (_rst < 0) {                 // If no hardware reset pin...
-    sendCommand(ILI9341_SWRESET); // Engage software reset
+  if (_rst < 0) {                  // If no hardware reset pin...
+    sendCommand(ILI9341_SWRESET);  // Engage software reset
     delay(150);
   }
 
@@ -202,8 +202,7 @@ void Adafruit_ILI9341_NG::begin(uint32_t freq) {
     numArgs = x & 0x7F;
     sendCommand(cmd, addr, numArgs);
     addr += numArgs;
-    if (x & 0x80)
-      delay(150);
+    if (x & 0x80) delay(150);
   }
 
   _width = ILI9341_TFTWIDTH;
@@ -217,28 +216,28 @@ void Adafruit_ILI9341_NG::begin(uint32_t freq) {
 */
 /**************************************************************************/
 void Adafruit_ILI9341_NG::setRotation(uint8_t m) {
-  _rotation = m % 4; // can't be higher than 3
+  _rotation = m % 4;  // can't be higher than 3
   switch (_rotation) {
-  case 0:
-    m = (MADCTL_MX | MADCTL_BGR);
-    _width = ILI9341_TFTWIDTH;
-    _height = ILI9341_TFTHEIGHT;
-    break;
-  case 1:
-    m = (MADCTL_MV | MADCTL_BGR);
-    _width = ILI9341_TFTHEIGHT;
-    _height = ILI9341_TFTWIDTH;
-    break;
-  case 2:
-    m = (MADCTL_MY | MADCTL_BGR);
-    _width = ILI9341_TFTWIDTH;
-    _height = ILI9341_TFTHEIGHT;
-    break;
-  case 3:
-    m = (MADCTL_MX | MADCTL_MY | MADCTL_MV | MADCTL_BGR);
-    _width = ILI9341_TFTHEIGHT;
-    _height = ILI9341_TFTWIDTH;
-    break;
+    case 0:
+      m = (MADCTL_MX | MADCTL_BGR);
+      _width = ILI9341_TFTWIDTH;
+      _height = ILI9341_TFTHEIGHT;
+      break;
+    case 1:
+      m = (MADCTL_MV | MADCTL_BGR);
+      _width = ILI9341_TFTHEIGHT;
+      _height = ILI9341_TFTWIDTH;
+      break;
+    case 2:
+      m = (MADCTL_MY | MADCTL_BGR);
+      _width = ILI9341_TFTWIDTH;
+      _height = ILI9341_TFTHEIGHT;
+      break;
+    case 3:
+      m = (MADCTL_MX | MADCTL_MY | MADCTL_MV | MADCTL_BGR);
+      _width = ILI9341_TFTHEIGHT;
+      _height = ILI9341_TFTWIDTH;
+      break;
   }
 
   sendCommand(ILI9341_MADCTL, &m, 1);
@@ -301,15 +300,15 @@ void Adafruit_ILI9341_NG::setScrollMargins(uint16_t top, uint16_t bottom) {
 */
 /**************************************************************************/
 void Adafruit_ILI9341_NG::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w,
-                                     uint16_t h) {
+                                        uint16_t h) {
   uint16_t x2 = (x1 + w - 1), y2 = (y1 + h - 1);
-  writeCommand(ILI9341_CASET); // Column address set
+  writeCommand(ILI9341_CASET);  // Column address set
   SPI_WRITE16(x1);
   SPI_WRITE16(x2);
-  writeCommand(ILI9341_PASET); // Row address set
+  writeCommand(ILI9341_PASET);  // Row address set
   SPI_WRITE16(y1);
   SPI_WRITE16(y2);
-  writeCommand(ILI9341_RAMWR); // Write to RAM
+  writeCommand(ILI9341_RAMWR);  // Write to RAM
 }
 
 /**************************************************************************/
@@ -324,6 +323,17 @@ void Adafruit_ILI9341_NG::setAddrWindow(uint16_t x1, uint16_t y1, uint16_t w,
 /**************************************************************************/
 uint8_t Adafruit_ILI9341_NG::readcommand8(uint8_t commandByte, uint8_t index) {
   uint8_t data = 0x10 + index;
-  sendCommand(0xD9, &data, 1); // Set Index Register
+  sendCommand(0xD9, &data, 1);  // Set Index Register
   return Adafruit_SPITFT_NG::readcommand8(commandByte);
+}
+
+void Adafruit_ILI9341_NG::setSTMDMA(STMDMA *stmdma) { _stmdma = stmdma; }
+
+// override
+void Adafruit_ILI9341_NG::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+                                   uint16_t color) {
+  startWrite();
+  setAddrWindow(x, y, w, h);
+  _stmdma->fillRect(x, y, w, h, color);
+  endWrite();
 }
