@@ -207,7 +207,7 @@ void DefaultFontRenderer_NG::getTextBounds(const __FlashStringHelper *s,
 */
 /**************************************************************************/
 void DefaultFontRenderer_NG::setFont(const GFXfont *f) {
-  gfxFont = (GFXfont *)f;
+  if(f != nullptr) gfxFont = (GFXfont *)f;
 }
 
 /**************************************************************************/

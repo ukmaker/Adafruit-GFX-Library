@@ -89,9 +89,9 @@ void STMDMA::fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h,
       ;
     spiDmaTransferComplete = false;
     HAL_SPI_Transmit_DMA(&_spi, (uint8_t *)_buffer, total * 2);
-    while (!spiDmaTransferComplete)
-      ;
   }
+  while (!spiDmaTransferComplete)
+    ;
 }
 
 void STMDMA::beginWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h,
@@ -105,7 +105,7 @@ void STMDMA::beginWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h,
 }
 
 void STMDMA::drawWindowPixel(int16_t x, int16_t y, uint16_t color) {
-  if(x >= 0 && y >= 0) _buffer[x + (y * _fw)] = byteSwap(color);
+  if (x >= 0 && y >= 0) _buffer[x + (y * _fw)] = byteSwap(color);
 }
 
 void STMDMA::flushWindow() {
