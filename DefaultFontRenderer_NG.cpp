@@ -70,7 +70,7 @@ void DefaultFontRenderer_NG::drawChar(Adafruit_GFX_NG &gfx, int16_t x,
   if (_stmdma != nullptr) {
     _stmdma->beginWindow(x + xo, y + yo, w, h, bg);
   } else {
-      gfx.startWrite();
+    gfx.startWrite();
   }
   for (yy = 0; yy < h; yy++) {
     for (xx = 0; xx < w; xx++) {
@@ -92,7 +92,7 @@ void DefaultFontRenderer_NG::drawChar(Adafruit_GFX_NG &gfx, int16_t x,
       bits <<= 1;
     }
   }
-  if(_stmdma != nullptr) {
+  if (_stmdma != nullptr) {
     _stmdma->flushWindow();
     _stmdma->waitComplete();
   }
@@ -157,14 +157,13 @@ size_t DefaultFontRenderer_NG::write(Adafruit_GFX_NG &gfx, uint8_t c) {
     @param  y  y coordinate of the window's top left point
     @param  w  The width of the window
     @param  h  The height of the window
-    @note Also sets the text cursor position to the top left
-          character position (y + the font height)
+    @note Also sets the text cursor position to the baseline
 /**************************************************************************/
 void DefaultFontRenderer_NG::setTextWindow(int16_t x, int16_t y, int16_t w,
                                            int16_t h) {
   textX = cursor_x = x;
   textY = y;
-  cursor_y = y + textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance) - 1;
+  cursor_y = y - 1 - ymin + (int16_t)textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
   textW = w;
   textH = h;
   textWindowed = true;
@@ -207,7 +206,22 @@ void DefaultFontRenderer_NG::getTextBounds(const __FlashStringHelper *s,
 */
 /**************************************************************************/
 void DefaultFontRenderer_NG::setFont(const GFXfont *f) {
-  if(f != nullptr) gfxFont = (GFXfont *)f;
+  if (f != nullptr && f != gfxFont) {
+    gfxFont = (GFXfont *)f;
+    // find the max and min Y-offsets so we know where the bottom of a line is
+    // Use this in setTextWindow to set where the bottom left point is
+    uint8_t first = pgm_read_byte(&gfxFont->first);
+    uint8_t last = pgm_read_byte(&gfxFont->last);
+    ymin = pgm_read_byte(&gfxFont->yAdvance);
+    ymax = -ymin;
+
+    for (uint8_t c = first; c <= last; c++) {
+      GFXglyph *glyph = pgm_read_glyph_ptr(gfxFont, c - first);
+      int8_t yo = pgm_read_byte(&glyph->yOffset);
+      if (yo < ymin) ymin = yo;
+      if (yo > ymax) ymax = yo;
+    }
+  }
 }
 
 /**************************************************************************/

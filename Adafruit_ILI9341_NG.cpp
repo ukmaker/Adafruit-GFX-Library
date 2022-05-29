@@ -337,3 +337,12 @@ void Adafruit_ILI9341_NG::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
   _stmdma->fillRect(x, y, w, h, color);
   endWrite();
 }
+
+
+void Adafruit_ILI9341_NG::writeFillRectPreclipped(int16_t x, int16_t y, int16_t w, int16_t h,
+                                   uint16_t color) {
+  setAddrWindow(x, y, w, h);
+  _stmdma->fillRect(x, y, w, h, color);
+}
+
+

@@ -227,7 +227,7 @@ public:
   // primitives can handle their own sorting/clipping, it avoids repeating
   // such operations in the low-level code, making it potentially faster.
   // CALLING THIS WITH UNCLIPPED OR NEGATIVE VALUES COULD BE DISASTROUS.
-  inline void writeFillRectPreclipped(int16_t x, int16_t y, int16_t w,
+  virtual inline void writeFillRectPreclipped(int16_t x, int16_t y, int16_t w,
                                       int16_t h, uint16_t color);
   // Another new function, companion to the new non-blocking
   // writePixels() variant.

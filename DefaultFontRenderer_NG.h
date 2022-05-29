@@ -55,6 +55,7 @@ class DefaultFontRenderer_NG : public FontRenderer {
   int16_t textW;      ///< Width of text window
   int16_t textY;      ///< Top of text window
   int16_t textH;      ///< Height of text window
+  int8_t ymin, ymax;  // Max and min y-offsets from zero for any character in the current font
   STMDMA *_stmdma;
 };
 
