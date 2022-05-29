@@ -22,7 +22,7 @@
 DefaultFontRenderer_NG::DefaultFontRenderer_NG(const GFXfont *font, int16_t w,
                                                int16_t h)
     : FontRenderer(w, h) {
-  gfxFont = font;
+  setFont(font);
   textWindowed = false;
   textX = textY = textW = textH = 0;
   _stmdma = nullptr;
@@ -163,7 +163,8 @@ void DefaultFontRenderer_NG::setTextWindow(int16_t x, int16_t y, int16_t w,
                                            int16_t h) {
   textX = cursor_x = x;
   textY = y;
-  cursor_y = y - 1 - ymin + (int16_t)textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
+  cursor_y = y - 1 - ymax +
+             (int16_t)textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance);
   textW = w;
   textH = h;
   textWindowed = true;
@@ -208,17 +209,15 @@ void DefaultFontRenderer_NG::getTextBounds(const __FlashStringHelper *s,
 void DefaultFontRenderer_NG::setFont(const GFXfont *f) {
   if (f != nullptr && f != gfxFont) {
     gfxFont = (GFXfont *)f;
-    // find the max and min Y-offsets so we know where the bottom of a line is
+    // Find the lowest descender
     // Use this in setTextWindow to set where the bottom left point is
     uint8_t first = pgm_read_byte(&gfxFont->first);
     uint8_t last = pgm_read_byte(&gfxFont->last);
-    ymin = pgm_read_byte(&gfxFont->yAdvance);
-    ymax = -ymin;
+    ymax = 0;
 
     for (uint8_t c = first; c <= last; c++) {
       GFXglyph *glyph = pgm_read_glyph_ptr(gfxFont, c - first);
       int8_t yo = pgm_read_byte(&glyph->yOffset);
-      if (yo < ymin) ymin = yo;
       if (yo > ymax) ymax = yo;
     }
   }
