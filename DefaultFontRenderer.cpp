@@ -37,7 +37,7 @@ DefaultFontRenderer::DefaultFontRenderer(int16_t w, int16_t h) : FontRenderer(w,
     @param    size_y  Font magnification level in Y-axis, 1 is 'original' size
 */
 /**************************************************************************/
-void DefaultFontRenderer::drawChar(Adafruit_GFX_NG &gfx, int16_t x, int16_t y, unsigned char c,
+void DefaultFontRenderer::drawChar(Adafruit_GFX_NG *gfx, int16_t x, int16_t y, unsigned char c,
                             uint16_t color, uint16_t bg, uint8_t size_x,
                             uint8_t size_y) {
 
@@ -52,31 +52,31 @@ void DefaultFontRenderer::drawChar(Adafruit_GFX_NG &gfx, int16_t x, int16_t y, u
         if (!_cp437 && (c >= 176))
             c++; // Handle 'classic' charset behavior
 
-        gfx.startWrite();
+        gfx->startWrite();
         for (int8_t i = 0; i < 5; i++) { // Char bitmap = 5 columns
             uint8_t line = pgm_read_byte(&font[c * 5 + i]);
             for (int8_t j = 0; j < 8; j++, line >>= 1) {
             if (line & 1) {
                 if (size_x == 1 && size_y == 1)
-                gfx.writePixel(x + i, y + j, color);
+                gfx->writePixel(x + i, y + j, color);
                 else
-                gfx.writeFillRect(x + i * size_x, y + j * size_y, size_x, size_y,
+                gfx->writeFillRect(x + i * size_x, y + j * size_y, size_x, size_y,
                                 color);
             } else if (bg != color) {
                 if (size_x == 1 && size_y == 1)
-                gfx.writePixel(x + i, y + j, bg);
+                gfx->writePixel(x + i, y + j, bg);
                 else
-                gfx.writeFillRect(x + i * size_x, y + j * size_y, size_x, size_y, bg);
+                gfx->writeFillRect(x + i * size_x, y + j * size_y, size_x, size_y, bg);
             }
             }
         }
         if (bg != color) { // If opaque, draw vertical line for last column
             if (size_x == 1 && size_y == 1)
-            gfx.writeFastVLine(x + 5, y, 8, bg);
+            gfx->writeFastVLine(x + 5, y, 8, bg);
             else
-            gfx.writeFillRect(x + 5 * size_x, y, size_x, 8 * size_y, bg);
+            gfx->writeFillRect(x + 5 * size_x, y, size_x, 8 * size_y, bg);
         }
-        gfx.endWrite();
+        gfx->endWrite();
     } else {
         // Character is assumed previously filtered by write() to eliminate
         // newlines, returns, non-printable characters, etc.  Calling
@@ -100,7 +100,7 @@ void DefaultFontRenderer::drawChar(Adafruit_GFX_NG &gfx, int16_t x, int16_t y, u
 
         // Todo: Add character clipping here
 
-        gfx.startWrite();
+        gfx->startWrite();
         for (yy = 0; yy < h; yy++) {
         for (xx = 0; xx < w; xx++) {
             if (!(bit++ & 7)) {
@@ -108,16 +108,16 @@ void DefaultFontRenderer::drawChar(Adafruit_GFX_NG &gfx, int16_t x, int16_t y, u
             }
             if (bits & 0x80) {
             if (size_x == 1 && size_y == 1) {
-                gfx.writePixel(x + xo + xx, y + yo + yy, color);
+                gfx->writePixel(x + xo + xx, y + yo + yy, color);
             } else {
-                gfx.writeFillRect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
+                gfx->writeFillRect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
                             size_x, size_y, color);
             }
             }
             bits <<= 1;
         }
         }
-        gfx.endWrite();
+        gfx->endWrite();
     }
 }
 /**************************************************************************/
@@ -127,7 +127,7 @@ void DefaultFontRenderer::drawChar(Adafruit_GFX_NG &gfx, int16_t x, int16_t y, u
     @note If text windowing is enabled then any character which exceeds the
     bounds will not be printed at all - the whole character is clipped.
 /**************************************************************************/
-size_t DefaultFontRenderer::write(Adafruit_GFX_NG &gfx, uint8_t c) {
+size_t DefaultFontRenderer::write(Adafruit_GFX_NG *gfx, uint8_t c) {
   int16_t x0, y0, xw, yh;
 
     if(!gfxFont) {

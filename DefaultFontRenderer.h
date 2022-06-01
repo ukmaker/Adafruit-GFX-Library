@@ -18,8 +18,8 @@ class DefaultFontRenderer : public FontRenderer {
     DefaultFontRenderer(int16_t w, int16_t h);
     ~DefaultFontRenderer() {}
 
-    virtual size_t write(Adafruit_GFX_NG &gfx, uint8_t c);
-    virtual void drawChar(Adafruit_GFX_NG &gfx, int16_t x, int16_t y, unsigned char c,
+    virtual size_t write(Adafruit_GFX_NG *gfx, uint8_t c);
+    virtual void drawChar(Adafruit_GFX_NG *gfx, int16_t x, int16_t y, unsigned char c,
                             uint16_t color, uint16_t bg, uint8_t size_x,
                             uint8_t size_y);
                             

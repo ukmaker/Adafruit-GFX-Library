@@ -15,10 +15,9 @@ class FontRenderer;
 /// minimum you can subclass and provide drawPixel(). At a maximum you can do a
 /// ton of overriding to optimize. Used for any/all Adafruit displays!
 class Adafruit_GFX_NG : public Print {
-
-public:
-  Adafruit_GFX_NG(int16_t w, int16_t h); // Constructor
-  Adafruit_GFX_NG(int16_t w, int16_t h, FontRenderer *renderer); // Constructor
+ public:
+  Adafruit_GFX_NG(int16_t w, int16_t h);                          // Constructor
+  Adafruit_GFX_NG(int16_t w, int16_t h, FontRenderer *renderer);  // Constructor
 
   /**********************************************************************/
   /*!
@@ -109,7 +108,6 @@ public:
                      int16_t w, int16_t h);
   void setFontRenderer(FontRenderer *renderer);
 
-
   using Print::write;
 #if ARDUINO >= 100
   virtual size_t write(uint8_t);
@@ -141,14 +139,13 @@ public:
   /************************************************************************/
   uint8_t getRotation(void) const { return _rotation; }
 
-protected:
-
-  int16_t WIDTH;        ///< This is the 'raw' display width - never changes
-  int16_t HEIGHT;       ///< This is the 'raw' display height - never changes
-  int16_t _width;       ///< Display width as modified by current rotation
-  int16_t _height;      ///< Display height as modified by current rotation
-  uint8_t _rotation;     ///< Display rotation (0 thru 3)
+ protected:
+  int16_t WIDTH;      ///< This is the 'raw' display width - never changes
+  int16_t HEIGHT;     ///< This is the 'raw' display height - never changes
+  int16_t _width;     ///< Display width as modified by current rotation
+  int16_t _height;    ///< Display height as modified by current rotation
+  uint8_t _rotation;  ///< Display rotation (0 thru 3)
   FontRenderer *_fontRenderer;
 };
 
-#endif // _Adafruit_GFX_NG_H
+#endif  // _Adafruit_GFX_NG_H

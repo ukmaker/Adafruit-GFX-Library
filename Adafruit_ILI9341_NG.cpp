@@ -346,3 +346,21 @@ void Adafruit_ILI9341_NG::writeFillRectPreclipped(int16_t x, int16_t y, int16_t 
 }
 
 
+void Adafruit_ILI9341_NG::startWrite(void) {
+  SPI_BEGIN_TRANSACTION();
+  if (_cs >= 0)
+    SPI_CS_LOW();
+}
+
+size_t Adafruit_ILI9341_NG::write(const uint8_t *buffer, size_t size)
+{
+  size_t n = 0;
+  while (size--) {
+    if (Adafruit_GFX_NG::write((*buffer++))) {
+      n++;
+    } else {
+      break;
+    }
+  }
+  return n;
+}

@@ -26,7 +26,213 @@ DefaultFontRenderer_NG::DefaultFontRenderer_NG(const GFXfont *font, int16_t w,
   textWindowed = false;
   textX = textY = textW = textH = 0;
   _stmdma = nullptr;
+  _valign = TOP;
+  _halign = LEFT;
+  _prepared = false;
 }
+
+void DefaultFontRenderer_NG::setVAlign(VAlign align) { _valign = align; }
+
+void DefaultFontRenderer_NG::setHAlign(HAlign align) { _halign = align; }
+
+/**
+ * work out where the drawing position needs to start
+ * in order to fit the text in the window and satisfy
+ * the alignment settings
+ **/
+void DefaultFontRenderer_NG::writeAligned(Adafruit_GFX_NG *gfx,
+                                          const char *str) {
+  if (_halign == LEFT && _valign == TOP) {
+    // nothing to do, just use what was set by setTextWindow
+    gfx->write(str);
+    return;
+  }
+
+  const char *start;
+  start = str;
+  int nLines = 0;
+  int fontHeight = getFontHeight();
+  int totalHeight = fontHeight;
+  int firstLineWidth = 0, width = 0;
+
+  if (fitLine(&start, &firstLineWidth)) {
+    nLines++;
+    // continue for the rest of the lines just so we can count them all
+    while ((totalHeight < textH) && fitLine(&start, &width)) {
+      totalHeight += fontHeight;
+      nLines++;
+    }
+  }
+  if (nLines > 0) {
+    // Figure out where to set cursorX and cursorY
+    switch (_halign) {
+      case LEFT:
+        // already set
+        break;
+
+      case CENTER:
+        cursor_x = textX + (textW - firstLineWidth) / 2;
+        break;
+
+      case RIGHT:
+        cursor_x = textX + (textW - firstLineWidth);
+        break;
+    }
+
+    switch (_valign) {
+      case TOP:
+        // already set
+        break;
+
+      case MIDDLE: {
+        if (totalHeight < textH) {  // otherwise already set to top
+          // use the space
+          cursor_y = textY + (textH - totalHeight) / 2;
+        }
+      } break;
+
+      case BOTTOM: {
+        if (totalHeight < textH) {
+          cursor_y = textY + (textH - totalHeight);
+        }
+      } break;
+    }
+
+    //textWindowed = false;
+
+    // now print
+    if (_halign == LEFT) {
+      gfx->write(str);
+    } else {
+      // Need to set cursor_x for each line
+      start = str;
+      const char *next;
+      next = str;
+
+      while (fitLine(&next, &width)) {
+        if(_halign == CENTER) {
+          cursor_x = textX + (textW - width) /2;
+        } else {
+          cursor_x = textX + (textW - width);
+        }
+        while(start < next) {
+          write(gfx, *start);
+          start++;
+        }
+        cursor_y += fontHeight;
+      }
+    }
+  }
+}
+
+// fit a line to the width of the window
+// split the line at word boundaries
+// return true if there is more to do
+// return false if reached the end of the string
+// Return false if a character does not fit in the width of the
+// text window.
+// If a word is wider than the text window, split it
+bool DefaultFontRenderer_NG::fitLine(const char **start, int *lineWidth) {
+  if (isEnd(**start)) {
+    return false;
+  }
+  *lineWidth = 0;
+  int spaceWidth, lastSpaceWidth = 0, wordWidth = 0, charWidth = 0;
+  const char *end;
+  end = *start;
+
+  while(getWordWidth(start, &end, &wordWidth, &spaceWidth)) {
+    // something added width to the string
+    if((*lineWidth + lastSpaceWidth + wordWidth) > textW) {
+      // Need to wrap. Can the word fit on the next line?
+      if(wordWidth < textW) {
+        // OK to wrap on the word boundary
+        // there's room for the word on the next line
+        // leave start pointing at this word
+        return true;
+      } else {
+        // see if we can split the word
+        charWidth = getCharWidth(**start);
+        if(charWidth > textW) {
+          // textW must be really narrow - can't even fit a single char
+          return false;
+        }
+        if((*lineWidth + lastSpaceWidth + charWidth) > textW) {
+          // no room on this line for one more letter
+          return true;
+        }
+        *lineWidth += lastSpaceWidth;
+        // OK to append this char
+        *lineWidth += charWidth;
+        while(*start < end) {
+          (*start)++;
+          charWidth = getCharWidth(**start);
+          if((*lineWidth + charWidth) < textW) {
+            *lineWidth += charWidth;
+          } else {
+            return true;
+          }
+        }
+        return true;
+      }
+    } else {
+      // Room for more words
+      *lineWidth += wordWidth + lastSpaceWidth;
+      lastSpaceWidth = spaceWidth;
+      *start = end;
+    }
+  }
+  return isEnd(**start);
+}
+
+bool DefaultFontRenderer_NG::getWordWidth(const char **start, const char **end, int *wordWidth, int *spaceWidth) {
+  // skip leading spaces
+  *wordWidth = 0;
+  *spaceWidth = 0;
+
+  if(isEnd(**start)) {
+    return false; // We're done here
+  }
+
+  // Include leading spaces in th word width
+  while (isSpace(**start) && !isEnd(**start)) {
+    *wordWidth += getCharWidth(**start);
+    (*start)++;
+  }
+
+  *end = *start;
+
+  if (isEnd(**start)) {
+    return true; // we've done some work. next call will return false
+  }
+
+  while (!isSpace(**end) && !isEnd(**end)) {
+    *wordWidth += getCharWidth(**end);
+    (*end)++;
+  }
+
+  if (isEnd(**end)) {
+    return true; // we've done some work. next call will return false
+  }
+
+  while (isSpace(**end) && !isEnd(**end)) {
+    *spaceWidth += getCharWidth(**end);
+    (*end)++;
+  }
+
+  return true;
+}
+
+uint8_t DefaultFontRenderer_NG::getCharWidth(const char c) {
+  GFXglyph *glyph = pgm_read_glyph_ptr(gfxFont, c - (uint8_t)pgm_read_byte(&gfxFont->first));
+  uint8_t w = pgm_read_byte(&glyph->xAdvance);
+  return w;
+}
+
+ bool DefaultFontRenderer_NG::isSpace(const char c) { return c == ' '; }
+ bool DefaultFontRenderer_NG::isNewline(const char c) { return c == '\n'; }
+ bool DefaultFontRenderer_NG::isEnd(const char c) { return c == '\0'; }
+
 // Draw a character
 /**************************************************************************/
 /*!
@@ -41,7 +247,7 @@ DefaultFontRenderer_NG::DefaultFontRenderer_NG(const GFXfont *font, int16_t w,
     @param    size_y  Font magnification level in Y-axis, 1 is 'original' size
 */
 /**************************************************************************/
-void DefaultFontRenderer_NG::drawChar(Adafruit_GFX_NG &gfx, int16_t x,
+void DefaultFontRenderer_NG::drawChar(Adafruit_GFX_NG *gfx, int16_t x,
                                       int16_t y, unsigned char c,
                                       uint16_t color, uint16_t bg,
                                       uint8_t size_x, uint8_t size_y) {
@@ -70,7 +276,7 @@ void DefaultFontRenderer_NG::drawChar(Adafruit_GFX_NG &gfx, int16_t x,
   if (_stmdma != nullptr) {
     _stmdma->beginWindow(x + xo, y + yo, w, h, bg);
   } else {
-    gfx.startWrite();
+    gfx->startWrite();
   }
   for (yy = 0; yy < h; yy++) {
     for (xx = 0; xx < w; xx++) {
@@ -82,10 +288,10 @@ void DefaultFontRenderer_NG::drawChar(Adafruit_GFX_NG &gfx, int16_t x,
           if (_stmdma != nullptr) {
             _stmdma->drawWindowPixel(xx, yy, color);
           } else {
-            gfx.writePixel(x + xo + xx, y + yo + yy, color);
+            gfx->writePixel(x + xo + xx, y + yo + yy, color);
           }
         } else {
-          gfx.writeFillRect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
+          gfx->writeFillRect(x + (xo16 + xx) * size_x, y + (yo16 + yy) * size_y,
                             size_x, size_y, color);
         }
       }
@@ -96,7 +302,7 @@ void DefaultFontRenderer_NG::drawChar(Adafruit_GFX_NG &gfx, int16_t x,
     _stmdma->flushWindow();
     _stmdma->waitComplete();
   }
-  gfx.endWrite();
+  gfx->endWrite();
 }
 /**************************************************************************/
 /*!
@@ -105,7 +311,7 @@ void DefaultFontRenderer_NG::drawChar(Adafruit_GFX_NG &gfx, int16_t x,
     @note If text windowing is enabled then any character which exceeds the
     bounds will not be printed at all - the whole character is clipped.
 /**************************************************************************/
-size_t DefaultFontRenderer_NG::write(Adafruit_GFX_NG &gfx, uint8_t c) {
+size_t DefaultFontRenderer_NG::write(Adafruit_GFX_NG *gfx, uint8_t c) {
   int16_t x0, y0, xw, yh;
   if (textWindowed) {
     x0 = textX;
@@ -173,7 +379,10 @@ void DefaultFontRenderer_NG::setTextWindow(int16_t x, int16_t y, int16_t w,
 /*!
     @brief  Disables text windowing
 /**************************************************************************/
-void DefaultFontRenderer_NG::removeTextWindow() { textWindowed = false; }
+void DefaultFontRenderer_NG::removeTextWindow() {
+  textWindowed = false;
+  _prepared = false;
+}
 
 void DefaultFontRenderer_NG::getTextBounds(const char *string, int16_t x,
                                            int16_t y, int16_t *x1, int16_t *y1,
@@ -214,11 +423,12 @@ void DefaultFontRenderer_NG::setFont(const GFXfont *f) {
     uint8_t first = pgm_read_byte(&gfxFont->first);
     uint8_t last = pgm_read_byte(&gfxFont->last);
     ymax = 0;
-
+    ymin = 0;
     for (uint8_t c = first; c <= last; c++) {
       GFXglyph *glyph = pgm_read_glyph_ptr(gfxFont, c - first);
       int8_t yo = pgm_read_byte(&glyph->yOffset);
       if (yo > ymax) ymax = yo;
+      if (yo < ymin) ymin = yo;
     }
   }
 }

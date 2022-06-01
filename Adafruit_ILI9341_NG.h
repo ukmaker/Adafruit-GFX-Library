@@ -154,6 +154,10 @@ class Adafruit_ILI9341_NG : public Adafruit_SPITFT_NG {
   void scrollTo(uint16_t y);
   void setScrollMargins(uint16_t top, uint16_t bottom);
 
+size_t write(const uint8_t *buffer, size_t size);
+
+  void startWrite(void);
+
   // Transaction API not used by GFX
   void setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 

@@ -1045,7 +1045,7 @@ void Adafruit_GFX_NG::drawRGBBitmap(int16_t x, int16_t y, uint16_t *bitmap,
 /**************************************************************************/
 size_t Adafruit_GFX_NG::write(uint8_t c) {
   int16_t x0, y0, xw, yh;
-    _fontRenderer->write(*this, c);
+    _fontRenderer->write(this, c);
   return 1;
 }
 

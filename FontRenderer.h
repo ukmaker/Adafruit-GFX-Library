@@ -22,9 +22,9 @@ class FontRenderer {
   void setWidth(int16_t w) { _width = w; }
   void setHeight(int16_t h) { _height = h; }
 
-  virtual size_t write(Adafruit_GFX_NG &gfx, uint8_t c)=0;
+  virtual size_t write(Adafruit_GFX_NG *gfx, uint8_t c)=0;
 
-  virtual void drawChar(Adafruit_GFX_NG &gfx, int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size_x, uint8_t size_y)=0;
+  virtual void drawChar(Adafruit_GFX_NG *gfx, int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size_x, uint8_t size_y)=0;
 
   virtual void getTextBounds(const char *string, int16_t x, int16_t y, int16_t *x1,
                      int16_t *y1, uint16_t *w, uint16_t *h);

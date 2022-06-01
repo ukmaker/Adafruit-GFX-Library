@@ -10,6 +10,7 @@
 #include "FontRenderer.h"
 #include "STMDMA.h"
 #include "gfxfont.h"
+#include "Align.h"
 
 class Adafruit_GFX_NG;
 
@@ -26,8 +27,24 @@ class DefaultFontRenderer_NG : public FontRenderer {
   */
   /**********************************************************************/
   void setTextWindow(int16_t x, int16_t y, int16_t w, int16_t h);
+  void setVAlign(VAlign align);
+  void setHAlign(HAlign align);
+  void writeAligned(Adafruit_GFX_NG *gfx,  const char *string);
   void removeTextWindow();
-
+  uint8_t getCharWidth(const char c);  
+  bool isSpace(const char c);
+  bool isNewline(const char c);
+  bool isEnd(const char c);
+  bool fitLine(const char **p, int *w);
+  /**
+   * Return true if some characters were consumed. False means we're at the end of the string
+   * At exit, start points to the start of the word, end points to the first character
+   * of the next word - i.e. skips over any trailing whitespace
+   * wordWidth is the width of non-whitespace
+   * spaceWidth is the width of any trailing whitespace
+   **/
+  bool getWordWidth(const char **start,  const char **end, int *wordWidth, int *spaceWidth);
+  
   virtual void getTextBounds(const char *string, int16_t x, int16_t y,
                              int16_t *x1, int16_t *y1, uint16_t *w,
                              uint16_t *h);
@@ -35,9 +52,9 @@ class DefaultFontRenderer_NG : public FontRenderer {
                              int16_t *x1, int16_t *y1, uint16_t *w,
                              uint16_t *h);
 
-  virtual size_t write(Adafruit_GFX_NG &gfx, uint8_t c);
+  virtual size_t write(Adafruit_GFX_NG *gfx, uint8_t c);
 
-  virtual void drawChar(Adafruit_GFX_NG &gfx, int16_t x, int16_t y,
+  virtual void drawChar(Adafruit_GFX_NG *gfx, int16_t x, int16_t y,
                         unsigned char c, uint16_t color, uint16_t bg,
                         uint8_t size_x, uint8_t size_y);
 
@@ -57,6 +74,9 @@ class DefaultFontRenderer_NG : public FontRenderer {
   int16_t textH;      ///< Height of text window
   int8_t ymin, ymax;  // Max and min y-offsets from zero for any character in the current font
   STMDMA *_stmdma;
+  VAlign _valign;
+  HAlign _halign;
+  bool _prepared;
 };
 
 #endif  // _ADAFRUIT_DefaultFontRenderer_NG_H
